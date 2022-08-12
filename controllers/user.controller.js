@@ -1,50 +1,80 @@
 const { response } = require("express");
-const { validationResult } = require("express-validator");
 const bcryptjs = require("bcryptjs");
 
 const User = require("../models/user");
 
-const getUser = (req, res = response) => {
-  const { name, comp } = req.query; // /api/users?-> name=hello&comp=world <-
+const getUser = async (req, res = response) => {
+  // const { name, comp } = req.query; // /api/users?-> name=hello&comp=world <-
+  // const users = await User.find(); Gets all the users
+  // const totalEntries = await User.countDocuments(query);
+  // const users = await User.find(query).skip(from).limit(limit);
+  const { limit = 5, from = 0 } = req.query;
+  const query = { state: true };
 
-  res.json({ ok: true, data: "Get Method - Controller", name, comp });
+  const totalEntries = new Promise((resolve, reject) => {
+    const countTotal = User.countDocuments(query);
+
+    if (countTotal) {
+      resolve(countTotal);
+    } else {
+      reject("Could not get the total count");
+    }
+  });
+
+  const usersPromise = new Promise((resolve, reject) => {
+    const userData = User.find(query).skip(from).limit(limit);
+
+    if (userData) {
+      resolve(userData);
+    } else {
+      reject("Could not get the users");
+    }
+  });
+
+  const [total, users] = await Promise.all([totalEntries, usersPromise]);
+
+  res.json({ ok: true, data: { total, users } });
 };
 
-const putUser = (req, res = response) => {
+const putUser = async (req, res = response) => {
   //Read URL argument - Segment /api/users/->10<-
   const { id } = req.params; /* <- Name declared in the controller */
 
-  res.json({ ok: true, data: "put Method - Controller", id });
+  const { _id, password, google, email, ...infoReq } = req.body;
+
+  if (password) {
+    const salt = bcryptjs.genSaltSync();
+    infoReq.password = bcryptjs.hashSync(password, salt); //<- Hash password
+  }
+
+  const userDB = await User.findByIdAndUpdate(id, infoReq);
+
+  res.json({ ok: true, userDB });
 };
 
 const postUser = async (req, res = response) => {
-  const check_errors = validationResult(req);
-
-  if (!check_errors.isEmpty()) {
-    return res.status(400).json(check_errors);
-  }
-
   //Getting the data from the Url
   const { name, email, password, role } = req.body;
 
   const user = new User({ name, email, password, role });
-
-  //Verify if the email already exist
-  const email_exist = await User.findOne({ email });
-  if (email_exist) {
-    return res.status(400).json({ msg_err: "Email already registered" });
-  }
 
   const salt = bcryptjs.genSaltSync();
   user.password = bcryptjs.hashSync(password, salt); //<- Hash password
 
   await user.save();
 
-  res.status(201).json({ ok: true, data: "post Method - Controller", user });
+  res.status(201).json({ ok: true, user });
 };
 
-const deleteUser = (req, res = response) => {
-  res.json({ ok: true, data: "delete Method - Controller" });
+const deleteUser = async (req, res = response) => {
+  const { id } = req.params;
+
+  // How not to do it
+  // const user = await User.findByIdAndDelete(id);
+
+  const user = await User.findByIdAndUpdate(id, { state: false });
+
+  res.json({ ok: true, user });
 };
 
 const patchUser = (req, res = response) => {
