@@ -11,8 +11,8 @@ const dbConnection = async () => {
 
     console.log("DB Connected");
   } catch (error) {
-    console.error(error);
-    throw new Error("Cannot connect the DB");
+    console.error("Error mgs", error);
+    throw new Error(error);
   }
 };
 
