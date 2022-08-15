@@ -67,10 +67,14 @@ const postUser = async (req, res = response) => {
 };
 
 const deleteUser = async (req, res = response) => {
-  const { id } = req.params;
-
   // How not to do it
   // const user = await User.findByIdAndDelete(id);
+
+  const { id } = req.params;
+
+  // const uid = req.uid; //This value is added in the JWT Validation
+
+  // const userVerified = req.userVerified; //This value is added in the JWT Validation
 
   const user = await User.findByIdAndUpdate(id, { state: false });
 
