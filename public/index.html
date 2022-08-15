@@ -4,9 +4,61 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Denied Access</title>
+    <title>Sign In</title>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
-    <h1>Denied Access</h1>
+    <h1>Google Sign In</h1>
+    <hr />
+
+    <div
+      id="g_id_onload"
+      data-client_id="577024292307-3g2oqn7a1dg6ktskhrq66osdl7nnkl7b.apps.googleusercontent.com"
+      data-auto_prompt="false"
+      data-callback="handleCredentialResponse"
+    ></div>
+    <div
+      class="g_id_signin"
+      data-type="standard"
+      data-size="large"
+      data-theme="outline"
+      data-text="sign_in_with"
+      data-shape="rectangular"
+      data-logo_alignment="left"
+    ></div>
+
+    <button id="google_sign_out">Sign out</button>
+
+    <script>
+      async function handleCredentialResponse(response) {
+        //Google token: ID Token
+        // console.log("google token", response.credential);
+        const body = { id_token: response.credential };
+
+        const googleReq = await fetch("http://localhost:8080/api/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        googleReq.json().then((res) => {
+          console.log(res);
+          localStorage.setItem("email", res.user.email);
+        });
+      }
+
+      const buttonSignOut = document.querySelector("#google_sign_out");
+
+      buttonSignOut.onclick = () => {
+        console.log(google.accounts.id);
+        google.accounts.id.disableAutoSelect();
+
+        google.accounts.id.revoke(localStorage.getItem("email"), (done) => {
+          localStorage.clear();
+          location.reload();
+        });
+      };
+    </script>
   </body>
 </html>
