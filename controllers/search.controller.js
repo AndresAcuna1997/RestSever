@@ -27,17 +27,17 @@ const findProducts = async (term = "", res = response) => {
   const isMongoID = ObjectId.isValid(term);
 
   if (isMongoID) {
-    const product = await Product.findById(term);
+    const product = await Product.findById(term).populate("category", "name");
 
     res.json({ results: product ? [product] : [] });
   }
 
   const regex = new RegExp(term, "i");
 
-  const product = await User.find({
-    $or: [{ name: regex }, { email: regex }],
-    $and: [{ state: true }],
-  });
+  const product = await Product.find({
+    name: regex,
+    state: true,
+  }).populate("category", "name");
 
   res.json({ results: product });
 };
@@ -72,7 +72,8 @@ const findCategories = async (term = "", res = response) => {
   const regex = new RegExp(term, "i");
 
   const category = await Category.find({
-    $and: [{ state: true }, { name: regex }],
+    state: true,
+    name: regex,
   });
 
   res.json({ results: category });
