@@ -1,7 +1,7 @@
 const { response, request } = require("express");
 const User = require("../models/user");
 
-const validateRole = (req = request, res = response, next) => {
+const isAdmin = (req = request, res = response, next) => {
   try {
     if (!req.userVerified) {
       console.log(error);
@@ -41,4 +41,4 @@ const hasRole = (...roles) => {
   };
 };
 
-module.exports = { validateRole, hasRole };
+module.exports = { isAdmin, hasRole };
