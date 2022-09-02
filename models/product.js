@@ -30,6 +30,10 @@ const ProductSchema = Schema({
     type: String,
     required: true,
   },
+  image: {
+    type: String,
+    required: false,
+  },
   available: {
     type: Boolean,
     default: true,

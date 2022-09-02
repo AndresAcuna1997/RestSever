@@ -35,6 +35,16 @@ const categoryExist = async (id) => {
   }
 };
 
+const validCategories = async (category = "", arrCat = []) => {
+
+  const category_valid = arrCat.includes(category);
+
+  if (!category_valid) {
+    throw new Error(`The category ${category}, is not valid for this action`);
+  }
+
+};
+
 const producExistByName = async (name) => {
   const upperName = name.toUpperCase();
   const product = await Product.findOne({ name: upperName });
@@ -59,4 +69,5 @@ module.exports = {
   userExist,
   categoryExist,
   producExistById,
+  validCategories,
 };
